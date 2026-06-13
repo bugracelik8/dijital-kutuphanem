@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dijital Kütüphanem</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div class="container">
+		<header>
+			<div>
+				<h1>Kütüphanem</h1>
+				<p>Kütüphanem, notlarım ve analizlerim.</p>
+			</div>
+			<div class="header-buttons">
+				<button id="temaBtn" class="secondary-btn">🌙 Koyu Mod</button>
+				<button id="yeniEkleBtn" class="primary-btn">+ Yeni Ekle</button>
+			</div>
+		</header>
+
+		<div class="breadcrumb" id="breadcrumb"></div>
+		<main id="kutuphaneGrid" class="grid-layout"></main>
+	</div>
+
+	<div id="klasorModal" class="modal">
+		<div class="modal-content" style="max-width: 400px;">
+			<span class="kapat-btn" id="kapatKlasorBtn">&times;</span>
+			<div class="modal-header">
+				<h2 id="klasorModalBaslik" class="title" style="font-size: 20px; margin-bottom: 20px;">Yeni Klasör</h2>
+			</div>
+			<div class="modal-body">
+				<input type="text" id="klasorAdInput" class="link-input" placeholder="Klasör adı girin...">
+				<button id="klasorOlusturBtn" class="primary-btn" style="width: 100%;">Oluştur</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="yeniIcerikModal" class="modal">
+		<div class="modal-content">
+			<span class="kapat-btn" id="kapatYeniBtn">&times;</span>
+			<div class="modal-header">
+				<h2 class="title" style="font-size: 24px; margin-bottom: 20px;">Yeni Ne Ekliyoruz?</h2>
+			</div>
+			<div class="modal-body">
+				<input type="text" id="yeniBaslik" class="link-input" placeholder="Başlık (Örn: Caro-Kann Savunması)">
+                
+				<div class="segment-control">
+					<input type="radio" id="turNot" name="icerikTuru" value="not" checked>
+					<label for="turNot">📝 Yazılı Not</label>
+					<input type="radio" id="turPdf" name="icerikTuru" value="pdf">
+					<label for="turPdf">📄 PDF Yükle</label>
+				</div>
+
+				<div id="yaziliNotAlani">
+					<textarea id="yeniNot" placeholder="Notlarını veya analizlerini buraya yaz..."></textarea>
+				</div>
+
+				<div id="pdfYuklemeAlani" style="display: none;">
+					<div class="file-upload-box">
+						<input type="file" id="yeniPdfDosya" accept="application/pdf">
+					</div>
+				</div>
+
+				<button id="olusturBtn" class="primary-btn" style="width: 100%;">Dosyayı Oluştur</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="detayModal" class="modal">
+		<div class="modal-content">
+			<span class="kapat-btn" id="kapatDetayBtn">&times;</span>
+			<div class="modal-header">
+				<span id="modalEtiket" class="tag">İçerik</span>
+				<h2 id="modalBaslik" class="title" style="font-size: 24px;">Başlık</h2>
+			</div>
+			<div class="modal-body">
+				<div id="pdfGoruntuleAlani" style="display: none; margin-bottom: 20px;">
+					<a href="#" id="pdfAcBtn" target="_blank" class="primary-btn" style="display: block; text-align: center; text-decoration: none;">📄 PDF'i Yeni Sekmede Aç ve Oku</a>
+				</div>
+                
+				<h3 id="notBasligi">Notlarım</h3>
+				<textarea id="modalNotlar" placeholder="Bu eser hakkında aklında kalanlar..."></textarea>
+				<button id="kaydetBtn" class="primary-btn" style="width: 100%;">Değişiklikleri Kaydet</button>
+			</div>
+		</div>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+</html>
