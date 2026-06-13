@@ -75,14 +75,15 @@
 				<h2 id="modalBaslik" class="title" style="font-size: 24px;">Başlık</h2>
 			</div>
 			<div class="modal-body">
-				<div id="pdfGoruntuleAlani" style="display: none; margin-bottom: 20px;">
-					<a href="#" id="pdfAcBtn" target="_blank" class="primary-btn" style="display: block; text-align: center; text-decoration: none;">📄 PDF'i Yeni Sekmede Aç ve Oku</a>
-				</div>
+                <div id="pdfGoruntuleAlani" style="display: none; margin-bottom: 20px;">
+                    <iframe id="pdfIframe" style="width: 100%; height: 60vh; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 15px; display: none;"></iframe>
+                    <button id="pdfAcBtn" class="primary-btn" style="display: block; width: 100%;">📄 PDF'i Yükle ve Oku</button>
+                </div>
                 
-				<h3 id="notBasligi">Notlarım</h3>
-				<textarea id="modalNotlar" placeholder="Bu eser hakkında aklında kalanlar..."></textarea>
-				<button id="kaydetBtn" class="primary-btn" style="width: 100%;">Değişiklikleri Kaydet</button>
-			</div>
+                <h3 id="notBasligi">Notlarım</h3>
+                <textarea id="modalNotlar" placeholder="Bu eser hakkında aklında kalanlar..."></textarea>
+                <button id="kaydetBtn" class="primary-btn" style="width: 100%;">Değişiklikleri Kaydet</button>
+            </div>
 		</div>
 	</div>
 
