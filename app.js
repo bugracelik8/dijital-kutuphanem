@@ -1,20 +1,48 @@
-let kategoriler = [
-    { id: 1, ad: "Satranç" },
-    { id: 2, ad: "Sinema" },
-    { id: 3, ad: "Almanca" },
-    { id: 4, ad: "Antrenman" }
-];
+// HAFIZA SİSTEMİ (Boş Başlangıç)
+let kategoriler = JSON.parse(localStorage.getItem('kutuphaneKategoriler')) || [];
+let altKategoriler = JSON.parse(localStorage.getItem('kutuphaneAltKategoriler')) || [];
+let icerikler = JSON.parse(localStorage.getItem('kutuphaneIcerikler')) || [];
 
-let altKategoriler = [
-    { id: 101, ad: "Açılış Çalışmaları", ustId: 1 },
-    { id: 102, ad: "Film Analizleri", ustId: 2 },
-    { id: 103, ad: "CASA Kelime Listesi", ustId: 3 },
-    { id: 104, ad: "Makro Takibi", ustId: 4 }
-];
+function verileriKaydet() {
+    localStorage.setItem('kutuphaneKategoriler', JSON.stringify(kategoriler));
+    localStorage.setItem('kutuphaneAltKategoriler', JSON.stringify(altKategoriler));
+    localStorage.setItem('kutuphaneIcerikler', JSON.stringify(icerikler));
+}
 
-let icerikler = [
-    { id: 1001, baslik: "Caro-Kann İncelemesi", altId: 101, tur: "not", pdfUrl: "", notlar: "Merkez kontrolü notları..." }
-];
+// -----------------------------------------------------------
+// YENİ: INDEXED-DB (PDF Gömme ve Kalıcı Saklama Sistemi)
+let db;
+const request = indexedDB.open("KutuphaneDB", 1);
+
+request.onupgradeneeded = function(event) {
+    db = event.target.result;
+    if (!db.objectStoreNames.contains("pdfs")) {
+        db.createObjectStore("pdfs");
+    }
+};
+
+request.onsuccess = function(event) {
+    db = event.target.result;
+};
+
+request.onerror = function(event) {
+    console.error("Veritabanı hatası:", event.target.errorCode);
+};
+
+// PDF Kaydetme
+function pdfKaydet(id, file) {
+    const transaction = db.transaction(["pdfs"], "readwrite");
+    const store = transaction.objectStore("pdfs");
+    store.put(file, id);
+}
+
+// PDF Silme
+function pdfSil(id) {
+    const transaction = db.transaction(["pdfs"], "readwrite");
+    const store = transaction.objectStore("pdfs");
+    store.delete(id);
+}
+// -----------------------------------------------------------
 
 let aktifKat = null;
 let aktifAltKat = null;
@@ -24,8 +52,9 @@ const grid = document.getElementById('kutuphaneGrid');
 const breadcrumb = document.getElementById('breadcrumb');
 const detayModal = document.getElementById('detayModal');
 const yeniIcerikModal = document.getElementById('yeniIcerikModal');
-const klasorModal = document.getElementById('klasorModal'); // YENİ EKLENDİ
+const klasorModal = document.getElementById('klasorModal');
 
+// EKRANI ÇİZME FONKSİYONU
 function ekranıGuncelle() {
     grid.innerHTML = '';
     
@@ -35,6 +64,7 @@ function ekranıGuncelle() {
     breadcrumb.innerHTML = navHtml;
 
     if (!aktifKat) {
+        if(kategoriler.length === 0) grid.innerHTML = '<p style="color:var(--text-muted);">Henüz klasör yok. Yeni ekle butonundan başlayabilirsin.</p>';
         kategoriler.forEach(kat => {
             const card = document.createElement('div');
             card.className = 'card';
@@ -49,6 +79,7 @@ function ekranıGuncelle() {
     } 
     else if (!aktifAltKat) {
         const buKlasordekiler = altKategoriler.filter(ak => ak.ustId === aktifKat.id);
+        if(buKlasordekiler.length === 0) grid.innerHTML = '<p style="color:var(--text-muted);">Bu klasör boş.</p>';
         buKlasordekiler.forEach(altKat => {
             const card = document.createElement('div');
             card.className = 'card';
@@ -63,6 +94,7 @@ function ekranıGuncelle() {
     } 
     else {
         const buIcerikler = icerikler.filter(ic => ic.altId === aktifAltKat.id);
+        if(buIcerikler.length === 0) grid.innerHTML = '<p style="color:var(--text-muted);">Henüz içerik eklenmemiş.</p>';
         buIcerikler.forEach(icerik => {
             const card = document.createElement('div');
             card.className = 'card';
@@ -78,14 +110,40 @@ function ekranıGuncelle() {
     }
 }
 
-function silKategori(e, id) { e.stopPropagation(); if(confirm("Klasör silinsin mi?")) { kategoriler = kategoriler.filter(k => k.id !== id); ekranıGuncelle(); } }
-function silAltKategori(e, id) { e.stopPropagation(); if(confirm("Alt klasör silinsin mi?")) { altKategoriler = altKategoriler.filter(ak => ak.id !== id); ekranıGuncelle(); } }
-function silIcerik(e, id) { e.stopPropagation(); if(confirm("İçerik silinsin mi?")) { icerikler = icerikler.filter(ic => ic.id !== id); ekranıGuncelle(); } }
+// SİLME İŞLEMLERİ 
+function silKategori(e, id) { 
+    e.stopPropagation(); 
+    if(confirm("Klasör silinsin mi?")) { 
+        kategoriler = kategoriler.filter(k => k.id !== id); 
+        verileriKaydet(); 
+        ekranıGuncelle(); 
+    } 
+}
+function silAltKategori(e, id) { 
+    e.stopPropagation(); 
+    if(confirm("Alt klasör silinsin mi?")) { 
+        altKategoriler = altKategoriler.filter(ak => ak.id !== id); 
+        verileriKaydet(); 
+        ekranıGuncelle(); 
+    } 
+}
+function silIcerik(e, id) { 
+    e.stopPropagation(); 
+    if(confirm("İçerik silinsin mi?")) { 
+        // Eğer PDF ise veritabanından da sil
+        const silinecek = icerikler.find(ic => ic.id === id);
+        if (silinecek && silinecek.tur === 'pdf') pdfSil(id);
+
+        icerikler = icerikler.filter(ic => ic.id !== id); 
+        verileriKaydet(); 
+        ekranıGuncelle(); 
+    } 
+}
 
 function gitAnaSayfa() { aktifKat = null; aktifAltKat = null; ekranıGuncelle(); }
 function gitKategori() { aktifAltKat = null; ekranıGuncelle(); }
 
-// --- YENİ KLASÖR MODALI MANTIĞI ---
+// YENİ KLASÖR MANTIĞI
 document.getElementById('yeniEkleBtn').addEventListener('click', () => {
     if (!aktifKat) {
         document.getElementById('klasorModalBaslik').innerText = "Yeni Ana Klasör";
@@ -103,7 +161,7 @@ document.getElementById('yeniEkleBtn').addEventListener('click', () => {
     }
 });
 
-// Klasör Oluşturma Butonu
+// KLASÖR OLUŞTURMA
 document.getElementById('klasorOlusturBtn').addEventListener('click', () => {
     const ad = document.getElementById('klasorAdInput').value.trim();
     if(!ad) { alert("Lütfen bir isim girin."); return; }
@@ -113,11 +171,12 @@ document.getElementById('klasorOlusturBtn').addEventListener('click', () => {
     } else if (!aktifAltKat) {
         altKategoriler.push({ id: Date.now(), ad, ustId: aktifKat.id });
     }
+    verileriKaydet();
     klasorModal.style.display = 'none';
     ekranıGuncelle();
 });
 
-// --- İÇERİK MODALI MANTIĞI ---
+// İÇERİK MODALI TÜR SEÇİMİ
 const radioBtns = document.getElementsByName('icerikTuru');
 radioBtns.forEach(btn => {
     btn.addEventListener('change', (e) => {
@@ -131,28 +190,32 @@ radioBtns.forEach(btn => {
     });
 });
 
+// YENİ İÇERİK (PDF / NOT) OLUŞTURMA
 document.getElementById('olusturBtn').addEventListener('click', () => {
     const baslik = document.getElementById('yeniBaslik').value;
     const tur = document.querySelector('input[name="icerikTuru"]:checked').value;
     if(!baslik) { alert("Lütfen bir başlık girin."); return; }
 
-    let yeni = { id: Date.now(), baslik: baslik, altId: aktifAltKat.id, tur: tur, notlar: "", pdfUrl: "" };
+    const icerikId = Date.now();
+    let yeni = { id: icerikId, baslik: baslik, altId: aktifAltKat.id, tur: tur, notlar: "" };
 
     if (tur === 'not') {
         yeni.notlar = document.getElementById('yeniNot').value;
     } else {
         const fileInput = document.getElementById('yeniPdfDosya');
         if (fileInput.files.length > 0) {
-            yeni.pdfUrl = URL.createObjectURL(fileInput.files[0]); 
+            pdfKaydet(icerikId, fileInput.files[0]); // PDF'i IndexedDB'ye kaydet
         } else {
             alert("Lütfen bir PDF dosyası seçin!"); return;
         }
     }
     icerikler.push(yeni);
+    verileriKaydet();
     yeniIcerikModal.style.display = 'none';
     ekranıGuncelle();
 });
 
+// DETAYLARI GÖRÜNTÜLEME VE PDF AÇMA
 function detaylariAc(icerik) {
     acikIcerikId = icerik.id;
     document.getElementById('modalBaslik').innerText = icerik.baslik;
@@ -163,16 +226,37 @@ function detaylariAc(icerik) {
 
     if (icerik.tur === 'pdf') {
         pdfGoruntule.style.display = 'block';
-        pdfAcBtn.href = icerik.pdfUrl;
+        
+        // Tıklanınca PDF'i IndexedDB'den çek ve aç
+        pdfAcBtn.onclick = (e) => {
+            e.preventDefault();
+            const transaction = db.transaction(["pdfs"], "readonly");
+            const store = transaction.objectStore("pdfs");
+            const req = store.get(icerik.id);
+            req.onsuccess = function(e) {
+                const file = e.target.result;
+                if (file) {
+                    const url = URL.createObjectURL(file);
+                    window.open(url, '_blank');
+                } else {
+                    alert("PDF dosyası bulunamadı. Lütfen tekrar yükleyin.");
+                }
+            };
+        };
     } else {
         pdfGoruntule.style.display = 'none';
     }
     detayModal.style.display = 'flex';
 }
 
+// NOTLARI GÜNCELLEME
 document.getElementById('kaydetBtn').addEventListener('click', () => {
     const ic = icerikler.find(i => i.id === acikIcerikId);
-    if(ic) { ic.notlar = document.getElementById('modalNotlar').value; detayModal.style.display = 'none'; }
+    if(ic) { 
+        ic.notlar = document.getElementById('modalNotlar').value; 
+        verileriKaydet(); 
+        detayModal.style.display = 'none'; 
+    }
 });
 
 // PENCERELERİ KAPATMA
@@ -186,10 +270,22 @@ window.addEventListener('click', (e) => {
     if (e.target === klasorModal) klasorModal.style.display = 'none';
 });
 
+// KOYU MOD 
 const temaBtn = document.getElementById('temaBtn');
 temaBtn.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
     temaBtn.innerText = document.body.classList.contains('dark-mode') ? "☀️ Açık Mod" : "🌙 Koyu Mod";
+    
+    if(document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('kutuphaneTema', 'dark');
+    } else {
+        localStorage.setItem('kutuphaneTema', 'light');
+    }
 });
+
+if (localStorage.getItem('kutuphaneTema') === 'dark') {
+    document.body.classList.add('dark-mode');
+    temaBtn.innerText = "☀️ Açık Mod";
+}
 
 ekranıGuncelle();
