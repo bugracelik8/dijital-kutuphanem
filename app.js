@@ -215,7 +215,7 @@ document.getElementById('olusturBtn').addEventListener('click', () => {
     ekranıGuncelle();
 });
 
-// DETAYLARI GÖRÜNTÜLEME VE PDF AÇMA
+// DETAYLARI GÖRÜNTÜLEME VE SİTE İÇİNDE PDF AÇMA
 function detaylariAc(icerik) {
     acikIcerikId = icerik.id;
     document.getElementById('modalBaslik').innerText = icerik.baslik;
@@ -223,21 +223,31 @@ function detaylariAc(icerik) {
     
     const pdfGoruntule = document.getElementById('pdfGoruntuleAlani');
     const pdfAcBtn = document.getElementById('pdfAcBtn');
+    const pdfIframe = document.getElementById('pdfIframe'); // Yeni iframe elementimiz
 
     if (icerik.tur === 'pdf') {
         pdfGoruntule.style.display = 'block';
+        pdfIframe.style.display = 'none'; // Pencere ilk açıldığında iframe gizli
+        pdfAcBtn.style.display = 'block'; // Buton görünür
         
-        // Tıklanınca PDF'i IndexedDB'den çek ve aç
+        // Tıklanınca PDF'i IndexedDB'den çek ve iframe içine göm
         pdfAcBtn.onclick = (e) => {
             e.preventDefault();
             const transaction = db.transaction(["pdfs"], "readonly");
             const store = transaction.objectStore("pdfs");
             const req = store.get(icerik.id);
+            
             req.onsuccess = function(e) {
                 const file = e.target.result;
                 if (file) {
                     const url = URL.createObjectURL(file);
-                    window.open(url, '_blank');
+                    
+                    // Yeni sekme yerine iframe'in kaynağına veriyoruz
+                    // #view=FitH parametresi PDF'in genişliğini ekrana sığdırmaya zorlar
+                    pdfIframe.src = url + "#view=FitH"; 
+                    
+                    pdfIframe.style.display = 'block'; // PDF alanını göster
+                    pdfAcBtn.style.display = 'none'; // Butonu gizle
                 } else {
                     alert("PDF dosyası bulunamadı. Lütfen tekrar yükleyin.");
                 }
@@ -245,6 +255,7 @@ function detaylariAc(icerik) {
         };
     } else {
         pdfGoruntule.style.display = 'none';
+        pdfIframe.src = ""; // Başka karta geçince hafızayı temizle
     }
     detayModal.style.display = 'flex';
 }
