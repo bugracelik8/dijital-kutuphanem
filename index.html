@@ -7,23 +7,39 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- KİMLİK DOĞRULAMA (GİRİŞ/KAYIT) EKRANI -->
     <div id="authEkrani" class="auth-overlay">
         <div class="auth-card">
-            <h1 style="margin-bottom: 10px;">Stuffd <span class="beta-badge">BETA</span></h1>
-            <p style="color: var(--text-muted); margin-bottom: 25px;">Kütüphanene erişmek için giriş yap.</p>
+            <h1 style="margin-bottom: 5px;">Stuffd <span class="beta-badge">BETA</span></h1>
             
-            <input type="email" id="authEmail" class="link-input" placeholder="E-posta Adresi">
-            <input type="password" id="authSifre" class="link-input" placeholder="Şifre">
-            
-            <button id="girisBtn" class="primary-btn" style="width: 100%; margin-bottom: 10px;">Giriş Yap</button>
-            <button id="kayitBtn" class="secondary-btn" style="width: 100%;">Yeni Kayıt Ol</button>
-            <p id="authHata" style="color: var(--danger-color); font-size: 14px; margin-top: 15px; display: none;"></p>
+            <div id="girisFormu">
+                <p style="color: var(--text-muted); margin-bottom: 25px;">Kütüphanene hoş geldin.</p>
+                <input type="email" id="girisEmail" class="link-input" placeholder="E-posta Adresi">
+                <input type="password" id="girisSifre" class="link-input" placeholder="Şifre">
+                <button id="girisBtn" class="primary-btn" style="width: 100%; margin-bottom: 10px;">Giriş Yap</button>
+                <p class="auth-link" id="gitKayitOl">Hesabın yok mu? <b>Kayıt Ol</b></p>
+                <p class="auth-link" id="gitSifreSifirla">Şifreni mi unuttun?</p>
+            </div>
+
+            <div id="kayitFormu" style="display: none;">
+                <p style="color: var(--text-muted); margin-bottom: 25px;">Yeni bir başlangıç yap.</p>
+                <input type="email" id="kayitEmail" class="link-input" placeholder="E-posta Adresi">
+                <input type="password" id="kayitSifre" class="link-input" placeholder="Şifre (En az 8 hane, 1 Büyük, 1 Rakam)">
+                <button id="kayitBtn" class="primary-btn" style="width: 100%; margin-bottom: 10px; background-color: #34c759;">Hesap Oluştur</button>
+                <p class="auth-link" id="gitGirisYap">Zaten hesabın var mı? <b>Giriş Yap</b></p>
+            </div>
+
+            <div id="sifreFormu" style="display: none;">
+                <p style="color: var(--text-muted); margin-bottom: 25px;">Şifreni e-posta ile sıfırla.</p>
+                <input type="email" id="sifreSifirlaEmail" class="link-input" placeholder="Kayıtlı E-posta Adresi">
+                <button id="sifreSifirlaBtn" class="primary-btn" style="width: 100%; margin-bottom: 10px; background-color: #ff9f0a;">Sıfırlama Linki Gönder</button>
+                <p class="auth-link" id="gitGirisYap2">Giriş ekranına dön</p>
+            </div>
+
+            <p id="authMesaj" style="font-size: 14px; margin-top: 15px; display: none; padding: 10px; border-radius: 8px;"></p>
         </div>
     </div>
 
-    <!-- ANA UYGULAMA -->
-    <div class="container">
+    <div class="container" id="anaUygulama" style="display: none;">
         <header>
             <div>
                 <h1>Stuffd <span class="beta-badge">BETA</span></h1>
@@ -35,12 +51,10 @@
                 <button id="cikisBtn" class="secondary-btn" style="background-color: #ff3b30; color: white;">Çıkış</button>
             </div>
         </header>
-
         <div class="breadcrumb" id="breadcrumb"></div>
         <main id="kutuphaneGrid" class="grid-layout"></main>
     </div>
 
-    <!-- KLASÖR EKLEME PENCERESİ -->
     <div id="klasorModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <span class="kapat-btn" id="kapatKlasorBtn">&times;</span>
@@ -54,7 +68,6 @@
         </div>
     </div>
 
-    <!-- YENİ İÇERİK EKLEME PENCERESİ -->
     <div id="yeniIcerikModal" class="modal">
         <div class="modal-content">
             <span class="kapat-btn" id="kapatYeniBtn">&times;</span>
@@ -82,7 +95,6 @@
         </div>
     </div>
 
-    <!-- DETAY GÖRÜNTÜLEME PENCERESİ -->
     <div id="detayModal" class="modal">
         <div class="modal-content">
             <span class="kapat-btn" id="kapatDetayBtn">&times;</span>
