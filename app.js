@@ -1,9 +1,9 @@
 // FIREBASE MODÜLLERİNİ İÇE AKTAR
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// GÖNDERDİĞİN FIREBASE ANAHTARLARI
+// FIREBASE YAPILANDIRMASI
 const firebaseConfig = {
     apiKey: "AIzaSyCK3hB5I7XP4EETba2PjqChBeQR1rbbGdU",
     authDomain: "shelvd-d99e0.firebaseapp.com",
@@ -30,7 +30,7 @@ const sifreFormu = document.getElementById('sifreFormu');
 const authMesaj = document.getElementById('authMesaj');
 
 // ==========================================
-// 1. KİMLİK DOĞRULAMA & GÖZ MANTIĞI
+// 1. KİMLİK DOĞRULAMA (DOĞRULAMA GEÇİLDİ)
 // ==========================================
 
 function mesajGoster(metin, tur) {
@@ -68,19 +68,13 @@ document.getElementById('gitGirisYap').onclick = () => { kayitFormu.style.displa
 document.getElementById('gitSifreSifirla').onclick = () => { girisFormu.style.display = 'none'; sifreFormu.style.display = 'block'; authMesaj.style.display = 'none'; };
 document.getElementById('gitGirisYap2').onclick = () => { sifreFormu.style.display = 'none'; girisFormu.style.display = 'block'; authMesaj.style.display = 'none'; };
 
+// KULLANICI GİRİŞ YAPTIĞINDA DOĞRUDAN İÇERİ AL
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        if (user.emailVerified) {
-            currentUser = user;
-            authEkrani.style.display = 'none';
-            anaUygulama.style.display = 'block';
-            await verileriBuluttanGetir();
-        } else {
-            authEkrani.style.display = 'flex';
-            anaUygulama.style.display = 'none';
-            mesajGoster("Lütfen gelen kutunuzdaki linke tıklayarak e-postanızı doğrulayın.", "hata");
-            signOut(auth);
-        }
+        currentUser = user;
+        authEkrani.style.display = 'none';
+        anaUygulama.style.display = 'block';
+        await verileriBuluttanGetir();
     } else {
         currentUser = null;
         authEkrani.style.display = 'flex';
@@ -117,7 +111,7 @@ if(kayitSifreInput) {
     });
 }
 
-// PRO KAYIT MANTIĞI
+// KAYIT OL (MAİL DOĞRULAMASI KALDIRILDI)
 document.getElementById('kayitBtn').addEventListener('click', () => {
     const email = document.getElementById('kayitEmail').value;
     const sifre = kayitSifreInput.value;
@@ -133,13 +127,9 @@ document.getElementById('kayitBtn').addEventListener('click', () => {
     }
 
     createUserWithEmailAndPassword(auth, email, sifre)
-        .then((userCredential) => {
-            const actionCodeSettings = { url: window.location.href, handleCodeInApp: false };
-            sendEmailVerification(userCredential.user, actionCodeSettings).then(() => {
-                kayitFormu.style.display = 'none'; girisFormu.style.display = 'block';
-                mesajGoster("Kayıt başarılı! Lütfen e-postanıza (veya spam kutunuza) gelen linke tıklayın.", "basari");
-                signOut(auth);
-            });
+        .then(() => {
+            // Firebase otomatik giriş yaptıracağı için onAuthStateChanged doğrudan tetiklenecek
+            mesajGoster("Hesap başarıyla oluşturuldu! Giriş yapılıyor...", "basari");
         })
         .catch(error => mesajGoster("Kayıt Hatası: " + error.message, "hata"));
 });
@@ -161,7 +151,7 @@ document.getElementById('sifreSifirlaBtn').addEventListener('click', () => {
 document.getElementById('cikisBtn').addEventListener('click', () => signOut(auth));
 
 // ==========================================
-// 2. BULUT VERİTABANI VE DİĞER FONKSİYONLAR
+// 2. BULUT VERİTABANI VE METOTLAR
 // ==========================================
 const grid = document.getElementById('kutuphaneGrid');
 const breadcrumb = document.getElementById('breadcrumb');
@@ -293,7 +283,7 @@ document.getElementById('kaydetBtn').addEventListener('click', () => {
     document.getElementById(id).addEventListener('click', (e) => e.target.closest('.modal').style.display = 'none');
 });
 
-// VARSAYILAN OLARAK KOYU MOD (LIGHT MODE SEÇENEK YAPILDI)
+// TEMALANDIRMA (VARSAYILAN KOYU MOD)
 const temaBtn = document.getElementById('temaBtn');
 temaBtn.addEventListener('click', () => {
     document.body.classList.toggle('light-mode');
@@ -302,7 +292,6 @@ temaBtn.addEventListener('click', () => {
     localStorage.setItem('kutuphaneTema', isLight ? 'light' : 'dark');
 });
 
-// Başlangıç Durum Kontrolü
 if (localStorage.getItem('kutuphaneTema') === 'light') {
     document.body.classList.add('light-mode');
     temaBtn.innerText = "🌙 Koyu Mod";
