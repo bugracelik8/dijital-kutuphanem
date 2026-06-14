@@ -7,6 +7,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- KİMLİK DOĞRULAMA (GİRİŞ/KAYIT) EKRANI -->
+    <div id="authEkrani" class="auth-overlay">
+        <div class="auth-card">
+            <h1 style="margin-bottom: 10px;">Stuffd <span class="beta-badge">BETA</span></h1>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">Kütüphanene erişmek için giriş yap.</p>
+            
+            <input type="email" id="authEmail" class="link-input" placeholder="E-posta Adresi">
+            <input type="password" id="authSifre" class="link-input" placeholder="Şifre">
+            
+            <button id="girisBtn" class="primary-btn" style="width: 100%; margin-bottom: 10px;">Giriş Yap</button>
+            <button id="kayitBtn" class="secondary-btn" style="width: 100%;">Yeni Kayıt Ol</button>
+            <p id="authHata" style="color: var(--danger-color); font-size: 14px; margin-top: 15px; display: none;"></p>
+        </div>
+    </div>
+
+    <!-- ANA UYGULAMA -->
     <div class="container">
         <header>
             <div>
@@ -16,6 +32,7 @@
             <div class="header-buttons">
                 <button id="temaBtn" class="secondary-btn">🌙 Koyu Mod</button>
                 <button id="yeniEkleBtn" class="primary-btn">+ Yeni Ekle</button>
+                <button id="cikisBtn" class="secondary-btn" style="background-color: #ff3b30; color: white;">Çıkış</button>
             </div>
         </header>
 
@@ -23,6 +40,7 @@
         <main id="kutuphaneGrid" class="grid-layout"></main>
     </div>
 
+    <!-- KLASÖR EKLEME PENCERESİ -->
     <div id="klasorModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <span class="kapat-btn" id="kapatKlasorBtn">&times;</span>
@@ -36,6 +54,7 @@
         </div>
     </div>
 
+    <!-- YENİ İÇERİK EKLEME PENCERESİ -->
     <div id="yeniIcerikModal" class="modal">
         <div class="modal-content">
             <span class="kapat-btn" id="kapatYeniBtn">&times;</span>
@@ -44,29 +63,26 @@
             </div>
             <div class="modal-body">
                 <input type="text" id="yeniBaslik" class="link-input" placeholder="Başlık (Örn: Caro-Kann Savunması)">
-                
                 <div class="segment-control">
                     <input type="radio" id="turNot" name="icerikTuru" value="not" checked>
                     <label for="turNot">📝 Yazılı Not</label>
                     <input type="radio" id="turPdf" name="icerikTuru" value="pdf">
                     <label for="turPdf">📄 PDF Yükle</label>
                 </div>
-
                 <div id="yaziliNotAlani">
                     <textarea id="yeniNot" placeholder="Notlarını, analizlerini veya günlük düşüncelerini buraya yaz..."></textarea>
                 </div>
-
                 <div id="pdfYuklemeAlani" style="display: none;">
                     <div class="file-upload-box">
                         <input type="file" id="yeniPdfDosya" accept="application/pdf">
                     </div>
                 </div>
-
                 <button id="olusturBtn" class="primary-btn" style="width: 100%;">Dosyayı Oluştur</button>
             </div>
         </div>
     </div>
 
+    <!-- DETAY GÖRÜNTÜLEME PENCERESİ -->
     <div id="detayModal" class="modal">
         <div class="modal-content">
             <span class="kapat-btn" id="kapatDetayBtn">&times;</span>
@@ -79,7 +95,6 @@
                     <iframe id="pdfIframe" style="width: 100%; height: 60vh; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 15px; display: none;"></iframe>
                     <button id="pdfAcBtn" class="primary-btn" style="display: block; width: 100%;">📄 PDF'i Yükle ve Oku</button>
                 </div>
-                
                 <h3 id="notBasligi">Notlarım</h3>
                 <textarea id="modalNotlar" placeholder="Aklında kalanlar..."></textarea>
                 <button id="kaydetBtn" class="primary-btn" style="width: 100%;">Değişiklikleri Kaydet</button>
@@ -87,6 +102,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
