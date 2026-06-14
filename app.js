@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// BURAYA KENDİ FIREBASE ANAHTARLARINI YAPIŞTIR
+// GÖNDERDİĞİN FIREBASE ANAHTARLARI
 const firebaseConfig = {
     apiKey: "AIzaSyCK3hB5I7XP4EETba2PjqChBeQR1rbbGdU",
     authDomain: "shelvd-d99e0.firebaseapp.com",
@@ -30,42 +30,56 @@ const sifreFormu = document.getElementById('sifreFormu');
 const authMesaj = document.getElementById('authMesaj');
 
 // ==========================================
-// 1. KİMLİK DOĞRULAMA (PRO MANTIK)
+// 1. KİMLİK DOĞRULAMA & GÖZ MANTIĞI
 // ==========================================
 
-// Mesaj Gösterme Fonksiyonu
 function mesajGoster(metin, tur) {
     authMesaj.innerText = metin;
     authMesaj.className = tur === 'hata' ? 'mesaj-hata' : 'mesaj-basari';
     authMesaj.style.display = 'block';
 }
 
-// Şifre Gücü Kontrolü (En az 8 hane, 1 Büyük Harf, 1 Rakam)
 function sifreGucluMu(sifre) {
     const kural = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
     return kural.test(sifre);
 }
 
-// Ekranlar Arası Geçiş Animasyonları
+function gozButonunuBagla(inputId, toggleId) {
+    const input = document.getElementById(inputId);
+    const toggle = document.getElementById(toggleId);
+    if(input && toggle) {
+        toggle.addEventListener('click', () => {
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.innerText = '🙈';
+            } else {
+                input.type = 'password';
+                toggle.innerText = '👁️';
+            }
+        });
+    }
+}
+gozButonunuBagla('girisSifre', 'toggleGirisSifre');
+gozButonunuBagla('kayitSifre', 'toggleKayitSifre');
+gozButonunuBagla('kayitSifreTekrar', 'toggleKayitSifreTekrar');
+
 document.getElementById('gitKayitOl').onclick = () => { girisFormu.style.display = 'none'; kayitFormu.style.display = 'block'; authMesaj.style.display = 'none'; };
 document.getElementById('gitGirisYap').onclick = () => { kayitFormu.style.display = 'none'; girisFormu.style.display = 'block'; authMesaj.style.display = 'none'; };
 document.getElementById('gitSifreSifirla').onclick = () => { girisFormu.style.display = 'none'; sifreFormu.style.display = 'block'; authMesaj.style.display = 'none'; };
 document.getElementById('gitGirisYap2').onclick = () => { sifreFormu.style.display = 'none'; girisFormu.style.display = 'block'; authMesaj.style.display = 'none'; };
 
-// Kullanıcı Durumu Takibi
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (user.emailVerified) {
             currentUser = user;
             authEkrani.style.display = 'none';
-            anaUygulama.style.display = 'block'; // Ana siteyi göster
+            anaUygulama.style.display = 'block';
             await verileriBuluttanGetir();
         } else {
-            // E-postayı henüz onaylamamış
             authEkrani.style.display = 'flex';
             anaUygulama.style.display = 'none';
             mesajGoster("Lütfen gelen kutunuzdaki linke tıklayarak e-postanızı doğrulayın.", "hata");
-            signOut(auth); // Zorla çıkış yaptır ki sayfada takılı kalmasın
+            signOut(auth);
         }
     } else {
         currentUser = null;
@@ -75,97 +89,79 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-/// ==========================================
 // CANLI ŞİFRE GÜCÜ KONTROLÜ
-// ==========================================
 const kayitSifreInput = document.getElementById('kayitSifre');
 const gucMetni = document.getElementById('gucMetni');
 const barlar = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3'), document.getElementById('bar4'), document.getElementById('bar5')];
 
-kayitSifreInput.addEventListener('input', (e) => {
-    const val = e.target.value;
-    let score = 0;
-    
-    // Kurallar
-    if (val.length > 0) score++; // Çok Zayıf (Kırmızı)
-    if (val.length >= 6) score++; // Zayıf (Turuncu)
-    if (val.length >= 8 && /[A-Z]/.test(val)) score++; // Uyumlu (Sarı)
-    if (val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val)) score++; // Güvenli (Açık Yeşil)
-    if (val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) score++; // Çok Güvenli (Koyu Yeşil)
+if(kayitSifreInput) {
+    kayitSifreInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        let score = 0;
+        if (val.length > 0) score++;
+        if (val.length >= 6) score++;
+        if (val.length >= 8 && /[A-Z]/.test(val)) score++;
+        if (val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+        if (val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) score++;
 
-    // Barları Temizle
-    barlar.forEach(b => b.style.backgroundColor = "var(--border-color)");
+        barlar.forEach(b => b.style.backgroundColor = "var(--border-color)");
+        const renkler = ["#ff3b30", "#ff9f0a", "#ffd60a", "#34c759", "#30b058"];
+        const metinler = ["Çok Zayıf", "Zayıf", "Uyumlu", "Güvenli", "Çok Güvenli"];
 
-    const renkler = ["#ff3b30", "#ff9f0a", "#ffd60a", "#34c759", "#30b058"];
-    const metinler = ["Çok Zayıf", "Zayıf", "Uyumlu", "Güvenli", "Çok Güvenli"];
-
-    if (score > 0) {
-        for (let i = 0; i < score; i++) {
-            barlar[i].style.backgroundColor = renkler[score - 1];
+        if (score > 0) {
+            for (let i = 0; i < score; i++) barlar[i].style.backgroundColor = renkler[score - 1];
+            gucMetni.innerText = metinler[score - 1]; gucMetni.style.color = renkler[score - 1];
+        } else {
+            gucMetni.innerText = "Şifre Gücü"; gucMetni.style.color = "var(--text-muted)";
         }
-        gucMetni.innerText = metinler[score - 1];
-        gucMetni.style.color = renkler[score - 1];
-    } else {
-        gucMetni.innerText = "Şifre Gücü";
-        gucMetni.style.color = "var(--text-muted)";
-    }
-});
+    });
+}
 
-// ==========================================
-// YENİ KAYIT İŞLEMİ VE MAİL YÖNLENDİRMESİ
-// ==========================================
+// PRO KAYIT MANTIĞI
 document.getElementById('kayitBtn').addEventListener('click', () => {
     const email = document.getElementById('kayitEmail').value;
     const sifre = kayitSifreInput.value;
+    const sifreTekrar = document.getElementById('kayitSifreTekrar').value;
 
     if (!sifreGucluMu(sifre)) {
         mesajGoster("Şifreniz zayıf! Lütfen kurallara uygun bir şifre belirleyin.", "hata");
         return;
     }
+    if (sifre !== sifreTekrar) {
+        mesajGoster("Şifreler uyuşmuyor! Lütfen iki alana da aynı şifreyi girin.", "hata");
+        return;
+    }
 
     createUserWithEmailAndPassword(auth, email, sifre)
         .then((userCredential) => {
-            // E-posta Onay Sayfasına "Siteye Dön" Linki Eklemek
-            const actionCodeSettings = {
-                url: window.location.href, // Kullanıcıyı şu anki sitemize geri fırlatır
-                handleCodeInApp: false
-            };
-            
+            const actionCodeSettings = { url: window.location.href, handleCodeInApp: false };
             sendEmailVerification(userCredential.user, actionCodeSettings).then(() => {
-                document.getElementById('kayitFormu').style.display = 'none';
-                document.getElementById('girisFormu').style.display = 'block';
+                kayitFormu.style.display = 'none'; girisFormu.style.display = 'block';
                 mesajGoster("Kayıt başarılı! Lütfen e-postanıza (veya spam kutunuza) gelen linke tıklayın.", "basari");
-                signOut(auth); // Doğrulayana kadar içeri almamak için sistemden atıyoruz
+                signOut(auth);
             });
         })
         .catch(error => mesajGoster("Kayıt Hatası: " + error.message, "hata"));
 });
 
-// Giriş İşlemi
 document.getElementById('girisBtn').addEventListener('click', () => {
     const email = document.getElementById('girisEmail').value;
     const sifre = document.getElementById('girisSifre').value;
-    
-    signInWithEmailAndPassword(auth, email, sifre)
-        .catch(error => mesajGoster("Giriş Hatası: Bilgiler hatalı veya hesap yok.", "hata"));
+    signInWithEmailAndPassword(auth, email, sifre).catch(error => mesajGoster("Giriş Hatası: Bilgiler hatalı veya hesap yok.", "hata"));
 });
 
-// Şifre Sıfırlama İşlemi
 document.getElementById('sifreSifirlaBtn').addEventListener('click', () => {
     const email = document.getElementById('sifreSifirlaEmail').value;
     if (!email) { mesajGoster("Lütfen kayıtlı e-posta adresinizi girin.", "hata"); return; }
-    
     sendPasswordResetEmail(auth, email)
         .then(() => mesajGoster("Şifre sıfırlama linki e-posta adresinize gönderildi.", "basari"))
         .catch(error => mesajGoster("Hata: " + error.message, "hata"));
 });
 
-// Çıkış İşlemi
 document.getElementById('cikisBtn').addEventListener('click', () => signOut(auth));
 
-
 // ==========================================
-// 2. BULUT VERİTABANI VE DİĞER FONKSİYONLAR (Aynı Kaldı)
+// 2. BULUT VERİTABANI VE DİĞER FONKSİYONLAR
 // ==========================================
 const grid = document.getElementById('kutuphaneGrid');
 const breadcrumb = document.getElementById('breadcrumb');
@@ -176,13 +172,9 @@ const klasorModal = document.getElementById('klasorModal');
 async function verileriBuluttanGetir() {
     if (!currentUser) return;
     try {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
+        const docRef = doc(db, "users", currentUser.uid); const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            const data = docSnap.data();
-            kategoriler = data.kategoriler || [];
-            altKategoriler = data.altKategoriler || [];
-            icerikler = data.icerikler || [];
+            const data = docSnap.data(); kategoriler = data.kategoriler || []; altKategoriler = data.altKategoriler || []; icerikler = data.icerikler || [];
         }
         ekranıGuncelle();
     } catch (e) { console.error("Veri çekme hatası:", e); }
@@ -194,8 +186,7 @@ async function verileriBulutaKaydet() {
     catch (e) { console.error("Kaydetme hatası:", e); }
 }
 
-let localDB;
-const request = indexedDB.open("StuffdDB", 1);
+let localDB; const request = indexedDB.open("StuffdDB", 1);
 request.onupgradeneeded = (e) => { localDB = e.target.result; if (!localDB.objectStoreNames.contains("pdfs")) localDB.createObjectStore("pdfs"); };
 request.onsuccess = (e) => { localDB = e.target.result; };
 
@@ -214,8 +205,7 @@ function ekranıGuncelle() {
         kategoriler.forEach(kat => {
             const card = document.createElement('div'); card.className = 'card';
             card.innerHTML = `<button class="sil-btn" onclick="silKategori(event, ${kat.id})">&times;</button><div class="folder-icon">📁</div><h2 class="title">${kat.ad}</h2>`;
-            card.onclick = () => { aktifKat = kat; ekranıGuncelle(); };
-            grid.appendChild(card);
+            card.onclick = () => { aktifKat = kat; ekranıGuncelle(); }; grid.appendChild(card);
         });
     } else if (!aktifAltKat) {
         const buKlasordekiler = altKategoriler.filter(ak => ak.ustId === aktifKat.id);
@@ -223,18 +213,15 @@ function ekranıGuncelle() {
         buKlasordekiler.forEach(altKat => {
             const card = document.createElement('div'); card.className = 'card';
             card.innerHTML = `<button class="sil-btn" onclick="silAltKategori(event, ${altKat.id})">&times;</button><div class="folder-icon">📂</div><h2 class="title">${altKat.ad}</h2>`;
-            card.onclick = () => { aktifAltKat = altKat; ekranıGuncelle(); };
-            grid.appendChild(card);
+            card.onclick = () => { aktifAltKat = altKat; ekranıGuncelle(); }; grid.appendChild(card);
         });
     } else {
         const buIcerikler = icerikler.filter(ic => ic.altId === aktifAltKat.id);
         if(buIcerikler.length === 0) grid.innerHTML = '<p style="color:var(--text-muted);">Henüz içerik eklenmemiş.</p>';
         buIcerikler.forEach(icerik => {
-            const card = document.createElement('div'); card.className = 'card';
-            const etiketMetni = icerik.tur === 'pdf' ? "📄 PDF" : "📝 Not";
+            const card = document.createElement('div'); card.className = 'card'; const etiketMetni = icerik.tur === 'pdf' ? "📄 PDF" : "📝 Not";
             card.innerHTML = `<button class="sil-btn" onclick="silIcerik(event, ${icerik.id})">&times;</button><span class="tag">${etiketMetni}</span><h2 class="title">${icerik.baslik}</h2>`;
-            card.onclick = () => detaylariAc(icerik);
-            grid.appendChild(card);
+            card.onclick = () => detaylariAc(icerik); grid.appendChild(card);
         });
     }
 }
@@ -246,31 +233,23 @@ window.silAltKategori = (e, id) => { e.stopPropagation(); if(confirm("Alt klasö
 window.silIcerik = (e, id) => { 
     e.stopPropagation(); 
     if(confirm("İçerik silinsin mi?")) { 
-        const silinecek = icerikler.find(ic => ic.id === id);
-        if (silinecek && silinecek.tur === 'pdf') pdfSil(id);
-        icerikler = icerikler.filter(ic => ic.id !== id); 
-        verileriBulutaKaydet(); ekranıGuncelle(); 
+        const silinecek = icerikler.find(ic => ic.id === id); if (silinecek && silinecek.tur === 'pdf') pdfSil(id);
+        icerikler = icerikler.filter(ic => ic.id !== id); verileriBulutaKaydet(); ekranıGuncelle(); 
     } 
 };
 
 document.getElementById('yeniEkleBtn').addEventListener('click', () => {
     if (!aktifKat || !aktifAltKat) {
         document.getElementById('klasorModalBaslik').innerText = !aktifKat ? "Yeni Ana Klasör" : "Yeni Alt Klasör";
-        document.getElementById('klasorAdInput').value = "";
-        klasorModal.style.display = 'flex';
+        document.getElementById('klasorAdInput').value = ""; klasorModal.style.display = 'flex';
     } else {
-        yeniIcerikModal.style.display = 'flex';
-        document.getElementById('yeniBaslik').value = '';
-        document.getElementById('yeniNot').value = '';
-        document.getElementById('yeniPdfDosya').value = '';
+        yeniIcerikModal.style.display = 'flex'; document.getElementById('yeniBaslik').value = ''; document.getElementById('yeniNot').value = ''; document.getElementById('yeniPdfDosya').value = '';
     }
 });
 
 document.getElementById('klasorOlusturBtn').addEventListener('click', () => {
-    const ad = document.getElementById('klasorAdInput').value.trim();
-    if(!ad) return;
-    if (!aktifKat) { kategoriler.push({ id: Date.now(), ad }); } 
-    else if (!aktifAltKat) { altKategoriler.push({ id: Date.now(), ad, ustId: aktifKat.id }); }
+    const ad = document.getElementById('klasorAdInput').value.trim(); if(!ad) return;
+    if (!aktifKat) { kategoriler.push({ id: Date.now(), ad }); } else if (!aktifAltKat) { altKategoriler.push({ id: Date.now(), ad, ustId: aktifKat.id }); }
     verileriBulutaKaydet(); klasorModal.style.display = 'none'; ekranıGuncelle();
 });
 
@@ -282,38 +261,24 @@ document.querySelectorAll('input[name="icerikTuru"]').forEach(btn => {
 });
 
 document.getElementById('olusturBtn').addEventListener('click', () => {
-    const baslik = document.getElementById('yeniBaslik').value;
-    const tur = document.querySelector('input[name="icerikTuru"]:checked').value;
-    if(!baslik) return;
-    const icerikId = Date.now();
-    let yeni = { id: icerikId, baslik: baslik, altId: aktifAltKat.id, tur: tur, notlar: "" };
-
+    const baslik = document.getElementById('yeniBaslik').value; const tur = document.querySelector('input[name="icerikTuru"]:checked').value; if(!baslik) return;
+    const icerikId = Date.now(); let yeni = { id: icerikId, baslik: baslik, altId: aktifAltKat.id, tur: tur, notlar: "" };
     if (tur === 'not') yeni.notlar = document.getElementById('yeniNot').value;
     else {
-        const fileInput = document.getElementById('yeniPdfDosya');
-        if (fileInput.files.length > 0) pdfKaydet(icerikId, fileInput.files[0]);
-        else { alert("Lütfen bir PDF seçin."); return; }
+        const fileInput = document.getElementById('yeniPdfDosya'); if (fileInput.files.length > 0) pdfKaydet(icerikId, fileInput.files[0]); else { alert("Lütfen bir PDF seçin."); return; }
     }
     icerikler.push(yeni); verileriBulutaKaydet(); yeniIcerikModal.style.display = 'none'; ekranıGuncelle();
 });
 
 function detaylariAc(icerik) {
-    acikIcerikId = icerik.id;
-    document.getElementById('modalBaslik').innerText = icerik.baslik;
-    document.getElementById('modalNotlar').value = icerik.notlar || "";
-    
-    const pdfGoruntule = document.getElementById('pdfGoruntuleAlani');
-    const pdfAcBtn = document.getElementById('pdfAcBtn');
-    const pdfIframe = document.getElementById('pdfIframe');
-
+    acikIcerikId = icerik.id; document.getElementById('modalBaslik').innerText = icerik.baslik; document.getElementById('modalNotlar').value = icerik.notlar || "";
+    const pdfGoruntule = document.getElementById('pdfGoruntuleAlani'); const pdfAcBtn = document.getElementById('pdfAcBtn'); const pdfIframe = document.getElementById('pdfIframe');
     if (icerik.tur === 'pdf') {
         pdfGoruntule.style.display = 'block'; pdfIframe.style.display = 'none'; pdfAcBtn.style.display = 'block';
         pdfAcBtn.onclick = (e) => {
-            e.preventDefault();
-            const req = localDB.transaction(["pdfs"], "readonly").objectStore("pdfs").get(icerik.id);
+            e.preventDefault(); const req = localDB.transaction(["pdfs"], "readonly").objectStore("pdfs").get(icerik.id);
             req.onsuccess = (e) => {
-                if (e.target.result) { pdfIframe.src = URL.createObjectURL(e.target.result) + "#view=FitH"; pdfIframe.style.display = 'block'; pdfAcBtn.style.display = 'none'; } 
-                else alert("PDF bulunamadı.");
+                if (e.target.result) { pdfIframe.src = URL.createObjectURL(e.target.result) + "#view=FitH"; pdfIframe.style.display = 'block'; pdfAcBtn.style.display = 'none'; } else alert("PDF bulunamadı.");
             };
         };
     } else { pdfGoruntule.style.display = 'none'; pdfIframe.src = ""; }
@@ -321,18 +286,27 @@ function detaylariAc(icerik) {
 }
 
 document.getElementById('kaydetBtn').addEventListener('click', () => {
-    const ic = icerikler.find(i => i.id === acikIcerikId);
-    if(ic) { ic.notlar = document.getElementById('modalNotlar').value; verileriBulutaKaydet(); detayModal.style.display = 'none'; }
+    const ic = icerikler.find(i => i.id === acikIcerikId); if(ic) { ic.notlar = document.getElementById('modalNotlar').value; verileriBulutaKaydet(); detayModal.style.display = 'none'; }
 });
 
 ['kapatDetayBtn', 'kapatYeniBtn', 'kapatKlasorBtn'].forEach(id => {
     document.getElementById(id).addEventListener('click', (e) => e.target.closest('.modal').style.display = 'none');
 });
 
+// VARSAYILAN OLARAK KOYU MOD (LIGHT MODE SEÇENEK YAPILDI)
 const temaBtn = document.getElementById('temaBtn');
 temaBtn.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    temaBtn.innerText = document.body.classList.contains('dark-mode') ? "☀️ Açık Mod" : "🌙 Koyu Mod";
-    localStorage.setItem('kutuphaneTema', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    temaBtn.innerText = isLight ? "🌙 Koyu Mod" : "☀️ Açık Mod";
+    localStorage.setItem('kutuphaneTema', isLight ? 'light' : 'dark');
 });
-if (localStorage.getItem('kutuphaneTema') === 'dark') { document.body.classList.add('dark-mode'); temaBtn.innerText = "☀️ Açık Mod"; }
+
+// Başlangıç Durum Kontrolü
+if (localStorage.getItem('kutuphaneTema') === 'light') {
+    document.body.classList.add('light-mode');
+    temaBtn.innerText = "🌙 Koyu Mod";
+} else {
+    document.body.classList.remove('light-mode');
+    temaBtn.innerText = "☀️ Açık Mod";
+}
