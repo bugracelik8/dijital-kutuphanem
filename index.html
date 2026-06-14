@@ -23,7 +23,21 @@
             <div id="kayitFormu" style="display: none;">
                 <p style="color: var(--text-muted); margin-bottom: 25px;">Yeni bir başlangıç yap.</p>
                 <input type="email" id="kayitEmail" class="link-input" placeholder="E-posta Adresi">
-                <input type="password" id="kayitSifre" class="link-input" placeholder="Şifre (En az 8 hane, 1 Büyük, 1 Rakam)">
+                
+                <input type="password" id="kayitSifre" class="link-input" placeholder="Şifre" style="margin-bottom: 5px;">
+                <div class="sifre-kurallari">En az 8 karakter, 1 büyük harf ve 1 rakam içermelidir.</div>
+                
+                <div class="sifre-guc-kutusu">
+                    <div class="guc-barlari">
+                        <div class="bar" id="bar1"></div>
+                        <div class="bar" id="bar2"></div>
+                        <div class="bar" id="bar3"></div>
+                        <div class="bar" id="bar4"></div>
+                        <div class="bar" id="bar5"></div>
+                    </div>
+                    <div class="guc-metni" id="gucMetni">Şifre Gücü</div>
+                </div>
+
                 <button id="kayitBtn" class="primary-btn" style="width: 100%; margin-bottom: 10px; background-color: #34c759;">Hesap Oluştur</button>
                 <p class="auth-link" id="gitGirisYap">Zaten hesabın var mı? <b>Giriş Yap</b></p>
             </div>
