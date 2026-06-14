@@ -75,23 +75,67 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Yeni Kayıt İşlemi
+/// ==========================================
+// CANLI ŞİFRE GÜCÜ KONTROLÜ
+// ==========================================
+const kayitSifreInput = document.getElementById('kayitSifre');
+const gucMetni = document.getElementById('gucMetni');
+const barlar = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3'), document.getElementById('bar4'), document.getElementById('bar5')];
+
+kayitSifreInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    let score = 0;
+    
+    // Kurallar
+    if (val.length > 0) score++; // Çok Zayıf (Kırmızı)
+    if (val.length >= 6) score++; // Zayıf (Turuncu)
+    if (val.length >= 8 && /[A-Z]/.test(val)) score++; // Uyumlu (Sarı)
+    if (val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val)) score++; // Güvenli (Açık Yeşil)
+    if (val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) score++; // Çok Güvenli (Koyu Yeşil)
+
+    // Barları Temizle
+    barlar.forEach(b => b.style.backgroundColor = "var(--border-color)");
+
+    const renkler = ["#ff3b30", "#ff9f0a", "#ffd60a", "#34c759", "#30b058"];
+    const metinler = ["Çok Zayıf", "Zayıf", "Uyumlu", "Güvenli", "Çok Güvenli"];
+
+    if (score > 0) {
+        for (let i = 0; i < score; i++) {
+            barlar[i].style.backgroundColor = renkler[score - 1];
+        }
+        gucMetni.innerText = metinler[score - 1];
+        gucMetni.style.color = renkler[score - 1];
+    } else {
+        gucMetni.innerText = "Şifre Gücü";
+        gucMetni.style.color = "var(--text-muted)";
+    }
+});
+
+// ==========================================
+// YENİ KAYIT İŞLEMİ VE MAİL YÖNLENDİRMESİ
+// ==========================================
 document.getElementById('kayitBtn').addEventListener('click', () => {
     const email = document.getElementById('kayitEmail').value;
-    const sifre = document.getElementById('kayitSifre').value;
+    const sifre = kayitSifreInput.value;
 
     if (!sifreGucluMu(sifre)) {
-        mesajGoster("Şifreniz zayıf! En az 8 karakter, 1 büyük harf ve 1 rakam içermelidir.", "hata");
+        mesajGoster("Şifreniz zayıf! Lütfen kurallara uygun bir şifre belirleyin.", "hata");
         return;
     }
 
     createUserWithEmailAndPassword(auth, email, sifre)
         .then((userCredential) => {
-            sendEmailVerification(userCredential.user).then(() => {
-                kayitFormu.style.display = 'none';
-                girisFormu.style.display = 'block';
-                mesajGoster("Kayıt başarılı! Lütfen e-postanıza gönderilen doğrulama linkine tıklayın.", "basari");
-                signOut(auth); // Doğrulayana kadar sisteme almamak için çıkış yaptır
+            // E-posta Onay Sayfasına "Siteye Dön" Linki Eklemek
+            const actionCodeSettings = {
+                url: window.location.href, // Kullanıcıyı şu anki sitemize geri fırlatır
+                handleCodeInApp: false
+            };
+            
+            sendEmailVerification(userCredential.user, actionCodeSettings).then(() => {
+                document.getElementById('kayitFormu').style.display = 'none';
+                document.getElementById('girisFormu').style.display = 'block';
+                mesajGoster("Kayıt başarılı! Lütfen e-postanıza (veya spam kutunuza) gelen linke tıklayın.", "basari");
+                signOut(auth); // Doğrulayana kadar içeri almamak için sistemden atıyoruz
             });
         })
         .catch(error => mesajGoster("Kayıt Hatası: " + error.message, "hata"));
